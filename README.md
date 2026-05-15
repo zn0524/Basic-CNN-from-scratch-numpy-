@@ -212,18 +212,20 @@ Example:
 
 Input:
 
-[
+$$
 \begin{bmatrix}
-1 & 2 \
+1 & 2 \\
 5 & 3
 \end{bmatrix}
-]
+$$
 
 Output after max pooling:
 
+$$
 [
 5
 ]
+$$
 
 Coding example of pooling function:
 ```python
@@ -371,7 +373,7 @@ This helps stabilize training.
 
 # Dataset
 
-This project uses the MNIST dataset.
+This project uses the famouse MNIST dataset. 
 
 MNIST contains:
 
@@ -379,31 +381,6 @@ MNIST contains:
 * 60,000 training images
 * 10,000 testing images
 * 28x28 grayscale handwritten digits
-
-The dataset is loaded using:
-
-from keras.datasets import mnist
-
-# Example Usage
-
-x_small = x_train[:500]
-y_small = y_train_oh[:500]
-
-model = CNN(
-x_small[0],
-kernal_size=3,
-layer_one_size=4,
-layer_two_size=8,
-learning_rate=0.
-)
-
-model.fit(x_small, y_small, epochs=10)
-
-
-Predicting a digit:
-
-probs = model.predict(x_test[0])
-predicted_class = np.argmax(probs)
 
 # Why Build A CNN From Scratch?
 
@@ -420,7 +397,7 @@ Building one manually teaches:
 * matrix calculus
 * feature extraction
 
-This creates a much deeper understanding of deep learning.
+This gives a more solid base around CNNs.
 
 
 # Technologies Used
