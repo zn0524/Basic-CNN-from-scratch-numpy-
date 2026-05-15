@@ -9,28 +9,27 @@ implementation.
 
 The goal of this repository is educational:
 
-```
-● Understand how CNNs actually work internally
-● Learn the mathematics behind convolutions and backpropagation
-● Build intuition for feature extraction and image classification
-● Implement core deep learning concepts manually
-```
+* Understand how CNNs actually work internally
+* Learn the mathematics behind convolutions and backpropagation
+* Build intuition for feature extraction and image classification
+* Implement core deep learning concepts manually
+
 # What This Project Does
 
 This model:
 
-```
-● Loads the MNIST handwritten digit dataset
-● Normalizes image data
-● One-hot encodes labels
-● Performs convolution operations manually
-● Uses pooling layers for dimensionality reduction
-● Applies activation functions
-● Runs forward propagation
-● Computes loss and gradients
-● Updates weights using gradient descent
-● Predicts handwritten digits
-```
+
+* Loads the MNIST handwritten digit dataset
+* Normalizes image data
+* One-hot encodes labels
+* Performs convolution operations manually
+* Uses pooling layers for dimensionality reduction
+* Applies activation functions
+* Runs forward propagation
+* Computes loss and gradients
+* Updates weights using gradient descent
+* Predicts handwritten digits
+
 The implementation is intentionally low-level to show how CNNs work under the hood.
 
 
@@ -45,14 +44,14 @@ CNNs solve this problem by learning spatial patterns directly from the image.
 
 CNNs are extremely effective for:
 
-```
-● Image classification
-● Object detection
-● Facial recognition
-● Medical imaging
-● Self-driving car vision systems
-● OCR (optical character recognition)
-```
+
+* Image classification
+* Object detection
+* Facial recognition
+* Medical imaging
+* Self-driving car vision systems
+* OCR (optical character recognition)
+
 The MNIST dataset is commonly used as a beginner dataset because it contains
 grayscale images of handwritten digits from 0–9.
 
@@ -74,12 +73,12 @@ The convolution layer is the core of a CNN.
 A small matrix called a kernel (or filter) slides across the image and extracts patterns
 such as:
 
-```
-● edges
-● curves
-● textures
-● shapes
-```
+
+* edges
+* curves
+* textures
+* shapes
+
 Mathematically, convolution is:
 
 $$
@@ -88,14 +87,54 @@ $$
 
 Where:
 
-```
-● (I) is the input image
-● (K) is the kernel/filter
-● ((i,j)) is the output pixel location
-```
+
+* (I) is the input image
+* (K) is the kernel/filter
+* ((i,j)) is the output pixel location
+
 The kernel multiplies overlapping image values and sums them together.
 
 This creates a feature map.
+
+Basic convolution function example:
+```python
+import numpy as np
+
+def convolution(input_array, kernel):
+  output = []
+
+  # Get kernel dimensions (height × width)
+  kernel_h, kernel_w = kernel.shape
+
+  # Slide the kernel over the input vertically
+  for i in range(input_array.shape[0] - kernel_h + 1):
+    row = []
+
+    # Slide the kernel over the input horizontally
+    for j in range(input_array.shape[1] - kernel_w + 1):
+
+      # Extract a local region (same size as kernel)
+      # This is a matrix slice of the input
+      block = input_array[i:i+kernel_h, j:j+kernel_w]
+
+      # Element-wise multiplication:
+      # (input patch) ⊙ (kernel)
+      #
+      # Then sum all results:
+      # Σ (block[i,j] * kernel[i,j])
+      #
+      # This is the core convolution operation
+      val = np.sum(block * kernel)
+
+      # Store single scalar output for this position
+      row.append(val)
+
+    # One full row of convolved outputs
+    output.append(row)
+
+  # Convert list of lists into 2D array (feature map)
+  return np.array(output)
+```
 
 # Example of a Convolution Kernel
 
@@ -109,10 +148,30 @@ $$
 \end{bmatrix}
 $$
 
-This filter highlights horizontal edges in an image.
+Coding example:
+```python
+import numpy as np
 
-Different kernels learn different visual features during training.
+arr = np.array([
+      [1, 2, 3, 0],
+      [4, 5, 6, 1],
+      [7, 8, 9, 2],
+      [0, 1, 2, 3]
+    ])
 
+kernel = np.array([
+      [1, 0],
+      [0, -1]
+    ])
+
+print(convolution(arr, kernel))
+```
+Output:
+```python
+[[-4 -4  2]
+ [-4 -4  4]
+ [ 6  6  6]]
+```
 # 2. Activation Functions
 
 After convolution, the network applies a non-linear activation function.
@@ -128,17 +187,25 @@ ReLU removes negative values and introduces non-linearity.
 
 Without activation functions, the network could only learn linear relationships.
 
+Coding example: 
+```python
+import numpy as np
+
+def RELU(input_array):
+  #if element in input_array is less than zero replace it with zero
+  return np.maximum(0, input_array) 
+```
 # 3. Pooling Layer
 
 Pooling reduces the spatial size of feature maps.
 
 This helps:
 
-```
-● reduce computation
-● reduce overfitting
-● keep important features
-```
+
+* reduce computation
+* reduce overfitting
+* keep important features
+
 Max pooling takes the largest value from a small region.
 
 Example:
@@ -158,7 +225,59 @@ Output after max pooling:
 5
 ]
 
+Coding example of pooling function:
+```python
+import numpy as np
 
+def max_pooling(input_array, pooling_size):
+  # Get input dimensions
+  rows, cols = input_array.shape
+
+  # Compute output dimensions after pooling
+  # (each pooling window collapses into 1 value)
+  out_rows = rows // pooling_size
+  out_cols = cols // pooling_size
+
+  # Output feature map (stores max values)
+  output = np.zeros((out_rows, out_cols))
+
+  # Mask to track where max values came from (used in backprop in CNNs)
+  mask = np.zeros_like(input_array)
+
+  # Slide pooling window vertically
+  for i in range(out_rows):
+    # Slide pooling window horizontally
+    for j in range(out_cols):
+
+      # Extract pooling region (pooling_size × pooling_size block)
+      block = input_array[
+          i * pooling_size:(i + 1) * pooling_size,
+          j * pooling_size:(j + 1) * pooling_size
+      ]
+
+      # MAX operation:
+      # mathematically: max(x_ij in block)
+      # keeps only the strongest activation in this region
+      max_val = np.max(block)
+
+      # Store pooled result in output feature map
+      output[i, j] = max_val
+
+      # Create binary mask showing where max occurred
+      # (1 at max location, 0 elsewhere)
+      block_mask = (block == max_val)
+
+      # Place mask back into correct location in full-sized mask
+      mask[
+          i * pooling_size:(i + 1) * pooling_size,
+          j * pooling_size:(j + 1) * pooling_size
+      ] = block_mask
+
+  # Return:
+  # - pooled feature map (downsampled)
+  # - mask (used for gradient flow in CNN backprop)
+  return output, mask
+```
 # 4. Fully Connected Layer
 
 After feature extraction, the network flattens the feature maps into a vector.
@@ -172,11 +291,11 @@ y = \mathbf{W}x + b
 $$
 Where:
 
-```
-● (W) = weights
-● (x) = input vector
-● (b) = bias
-```
+
+* (W) = weights
+* (x) = input vector
+* (b) = bias
+
 # 5. Softmax Output
 
 The final layer converts outputs into probabilities.
@@ -222,25 +341,25 @@ $$
 
 Where:
 
-```
-● (\eta) is the learning rate
-● (L) is the loss function
-```
+
+* (\eta) is the learning rate
+* (L) is the loss function
+
 The network slowly improves over many iterations.
 
 # Architecture Used In This Project
 
 This implementation includes:
 
-```
-● Two convolution layers
-● Multiple learnable kernels
-● Pooling layers
-● Manual forward propagation
-● Manual training loop
-● NumPy-only math operations
-● Gradient descent optimization
-```
+
+* Two convolution layers
+* Multiple learnable kernels
+* Pooling layers
+* Manual forward propagation
+* Manual training loop
+* NumPy-only math operations
+* Gradient descent optimization
+
 
 The kernels are initialized using Kaiming initialization:
 
@@ -256,11 +375,11 @@ This project uses the MNIST dataset.
 
 MNIST contains:
 
-```
-● 60,000 training images
-● 10,000 testing images
-● 28x28 grayscale handwritten digits
-```
+
+* 60,000 training images
+* 10,000 testing images
+* 28x28 grayscale handwritten digits
+
 The dataset is loaded using:
 
 from keras.datasets import mnist
@@ -292,29 +411,30 @@ Frameworks like PyTorch and TensorFlow automate most of the process.
 
 Building one manually teaches:
 
-```
-● tensor operations
-● convolutions
-● gradient flow
-● optimization
-● numerical stability
-● matrix calculus
-● feature extraction
-```
+
+* tensor operations
+* convolutions
+* gradient flow
+* optimization
+* numerical stability
+* matrix calculus
+* feature extraction
+
 This creates a much deeper understanding of deep learning.
 
 
 # Technologies Used
 
-```
-● Python
-● NumPy
-● Keras (dataset only)
-```
+
+* Python
+* NumPy
+* Keras (dataset only)
+
 # Educational Purpose
 
 This repository is designed primarily for learning and experimentation.
 
 The implementation prioritizes clarity and understanding over speed.
 
+Full CNN class is on file basicCNN.ipynb. 
 
